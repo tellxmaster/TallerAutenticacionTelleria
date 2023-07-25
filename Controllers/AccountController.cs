@@ -183,14 +183,14 @@ namespace TallerAutenticacionTelleria.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser {
+                var user = new ApplicationUser
+                {
                     Nombre = model.Nombre,
                     DNI = model.DNI,
                     PhoneNumber = model.PhoneNumber,
                     UserName = model.Email,
-                    Email = model.Email 
+                    Email = model.Email
                 };
-                
 
                 var result = await UserManager.CreateAsync(user, model.Password);
 
@@ -201,7 +201,7 @@ namespace TallerAutenticacionTelleria.Controllers
                     if (roleResult.Succeeded)
                     {
                         await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                        
+
                         return RedirectToAction("Index", "Home");
                     }
 
@@ -213,8 +213,17 @@ namespace TallerAutenticacionTelleria.Controllers
                 }
             }
 
+            // Si el ModelState no es válido, recargamos RolesList
+            var allowedRoles = new List<string> { "Cliente", "Vendedor" };
+            var roles = await RoleManager.Roles
+                .Where(r => allowedRoles.Contains(r.Name)) // Filtrar por los roles permitidos
+                .ToListAsync();
+
+            model.RolesList = new SelectList(roles, "Name", "Name");
+
             return View(model);
         }
+
 
         [ChildActionOnly]
         public string GetUserRoles()
